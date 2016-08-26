@@ -1,0 +1,15 @@
+[
+{
+  "modid": "joetater",
+  "name": "Joetater: Region Saver",
+  "description": "A tool to save region files on servers, quickly and easily! Developed for the LOTR Mod Official Server.",
+  "version": "1.0",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["Mevans"],
+  "credits": "Joetatoe",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]

@@ -1,3 +1,15 @@
+#################
+## Eclipse
+#################
+
+Joetater/*
+!Joetater/gradlew
+!Joetater/gradlew.bat
+!Joetater/build.gradle
+!Joetater/build.bat
+!Joetater/gradle/
+!Joetater/src/
+
 # Windows image file caches
 Thumbs.db
 ehthumbs.db
