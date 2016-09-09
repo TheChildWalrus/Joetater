@@ -1,0 +1,10 @@
+Joetater Changelog
+
+Version 1.1:
+
++ Added the /jbiome command to set biome IDs
+
+Version 1.0:
+
+Released.
++ Added the /joetate command
