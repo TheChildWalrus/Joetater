@@ -9,8 +9,6 @@ import cpw.mods.fml.common.FMLLog;
 
 public class CommandJoetate extends CommandBase
 {
-	private static final int MAX_RANGE = 10000;
-	
 	@Override
     public String getCommandName()
     {
@@ -40,7 +38,7 @@ public class CommandJoetate extends CommandBase
 			String mode = args[0];
 			if (mode.equals("r"))
 			{
-				int radius = parseIntBounded(sender, args[1], 0, MAX_RANGE);
+				int radius = parseIntBounded(sender, args[1], 0, JoetaterConfig.maxJoetateSize / 2);
 				ChunkCoordinates coords = sender.getPlayerCoordinates();
 				int posX = coords.posX;
 				int posZ = coords.posZ;
@@ -59,6 +57,13 @@ public class CommandJoetate extends CommandBase
 				int xMax = parseInt(sender, args[2]);
 				int zMin = parseInt(sender, args[3]);
 				int zMax = parseInt(sender, args[4]);
+				
+				int width = Math.abs(xMax - xMin);
+				int length = Math.abs(zMax - zMin);
+				if (width > JoetaterConfig.maxJoetateSize || length > JoetaterConfig.maxJoetateSize)
+				{
+					throw new WrongUsageException("Maximum joetate size is " + JoetaterConfig.maxJoetateSize);
+				}
 				
 				criteria = RegionCriteriaFactory.inBox(xMin, xMax, zMin, zMax);
 			}
