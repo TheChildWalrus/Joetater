@@ -1,5 +1,9 @@
 Joetater Changelog
 
+Version 1.4:
+
++ Added an IP logging feature to log players' IP addresses and match them against those of banned players
+
 Version 1.3:
 
 + Added configurable ingame checking for certain items above certain thresholds in player inventories

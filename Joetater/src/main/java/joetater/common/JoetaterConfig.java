@@ -33,8 +33,11 @@ public class JoetaterConfig
 	public static void load()
 	{
 		maxJoetateSize = config.getInt("Max Joetate Size", CATEGORY_GENERAL, 2000, 0, 20000, "Maximum size of a Joetater region. Note: For 'radius' mode, the maximum range will be half this");
-		IngameChecker.checkInterval = config.getInt("Ingame check interval", CATEGORY_GENERAL, 200, 1, 2400, "");
+		IngameChecker.checkInterval = config.getInt("Ingame check interval", CATEGORY_GENERAL, 100, 1, 2400, "Length of time (ticks) between checking player inventories");
+		IngameChecker.warnInterval = config.getInt("Ingame check warn interval", CATEGORY_GENERAL, 1200, 1, 6000, "Length of time (ticks) between successive warnings for the same player");
 		IngameChecker.messageAdmins = config.getBoolean("Ingame check message admins", CATEGORY_GENERAL, true, "");
+		JoetaterIPHandler.enableIPHandler = config.getBoolean("Enable IP handler", CATEGORY_GENERAL, true, "Enable IP logging and matching against IPs of banned players");
+		JoetaterIPHandler.retainIPTimeDays = config.getInt("Days to retain IPs", CATEGORY_GENERAL, 200, 1, Integer.MAX_VALUE, "Number of days to retain logged IPs for purpose of IP matching. IPs logged longer ago than this amount of days will be deleted. Prevents the file getting too large over time");
 
 		if (config.hasChanged())
 		{

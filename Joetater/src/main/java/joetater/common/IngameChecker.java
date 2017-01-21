@@ -9,7 +9,6 @@ import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.*;
 import net.minecraftforge.common.MinecraftForge;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -17,7 +16,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import com.google.common.base.Charsets;
 
 import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
@@ -28,7 +26,9 @@ public class IngameChecker
 	private static final int checkMetaAny = -1;
 	
 	public static int checkInterval;
+	public static int warnInterval;
 	public static boolean messageAdmins;
+	private static Map<UUID, Integer> playersTimeSinceWarned = new HashMap();
 	
 	public IngameChecker()
 	{
@@ -73,7 +73,7 @@ public class IngameChecker
 								int threshold = Integer.valueOf(sThreshold);
 								
 								checkItemIDs.put(Pair.of(sItemID, itemMeta), threshold);
-								FMLLog.info("Joetater: Ingame checks added check for %s.%d >= %d", sItemID, itemMeta, threshold);
+								Joetater.logger.info(String.format("Joetater: Ingame checks added check for %s.%d >= %d", sItemID, itemMeta, threshold));
 							}
 							else
 							{
@@ -87,7 +87,7 @@ public class IngameChecker
 						
 						if (error)
 						{
-							FMLLog.info("Joetater: ERROR in ingame checks config, line \"%s\"", line);
+							Joetater.logger.info(String.format("Joetater: ERROR in ingame checks config, line \"%s\"", line));
 						}
 					}
 				}
@@ -96,7 +96,7 @@ public class IngameChecker
 			}
 			catch (IOException e)
 			{
-				FMLLog.info("Joetater: Error loading ingame checks config file");
+				Joetater.logger.info("Joetater: Error loading ingame checks config file");
 				e.printStackTrace();
 			}
 		}
@@ -124,7 +124,7 @@ public class IngameChecker
 			}
 			catch (IOException e)
 			{
-				FMLLog.info("Joetater: Could not create ingame checks config file");
+				Joetater.logger.info("Joetater: Could not create ingame checks config file");
 				e.printStackTrace();
 			}
 		}
@@ -136,59 +136,68 @@ public class IngameChecker
 		if (event.phase == TickEvent.Phase.END)
 		{
 			MinecraftServer server = MinecraftServer.getServer();
-			if (server.getTickCounter() % checkInterval == 0)
+			
+			for (Object player : server.getConfigurationManager().playerEntityList)
 			{
-				for (Object player : server.getConfigurationManager().playerEntityList)
+				EntityPlayer entityplayer = (EntityPlayer)player;
+				InventoryPlayer inv = entityplayer.inventory;
+				UUID playerID = entityplayer.getUniqueID();
+				
+				if (playersTimeSinceWarned.containsKey(playerID) && playersTimeSinceWarned.get(playerID) > 0)
 				{
-					EntityPlayer entityplayer = (EntityPlayer)player;
-					InventoryPlayer inv = entityplayer.inventory;
-					
-					for (Entry<Pair<String, Integer>, Integer> entry : checkItemIDs.entrySet())
+					int time = playersTimeSinceWarned.get(playerID);
+					time--;
+					playersTimeSinceWarned.put(playerID, time);
+				}
+				
+				if (server.getTickCounter() % checkInterval == 0)
+				{
+					if (!playersTimeSinceWarned.containsKey(playerID) || playersTimeSinceWarned.get(playerID) <= 0)
 					{
-						Pair<String, Integer> itemKey = entry.getKey();
-						String checkItemID = itemKey.getKey();
-						int checkItemMeta = itemKey.getValue();
-						int threshold = entry.getValue();
-						
-						if (threshold > 0)
+						boolean sentWarning = false;
+						for (Entry<Pair<String, Integer>, Integer> entry : checkItemIDs.entrySet())
 						{
-							int count = 0;
-							for (int slot = 0; slot < inv.getSizeInventory(); slot++)
-							{
-								ItemStack itemstack = inv.getStackInSlot(slot);
-								if (itemstack != null)
-								{
-									Item item = itemstack.getItem();
-									String itemID = Item.itemRegistry.getNameForObject(item);
-									int meta = itemstack.getItemDamage();
-									if (itemID.equalsIgnoreCase(checkItemID) && (checkItemMeta == checkMetaAny || checkItemMeta == meta))
-									{
-										count += itemstack.stackSize;
-									}
-								}
-							}
+							Pair<String, Integer> itemKey = entry.getKey();
+							String checkItemID = itemKey.getKey();
+							int checkItemMeta = itemKey.getValue();
+							int threshold = entry.getValue();
 							
-							if (count >= threshold)
+							if (threshold > 0)
 							{
-								String message = String.format("Joetater: WARNING! Player %s has %d of item %s:%d", entityplayer.getCommandSenderName(), count, checkItemID, checkItemMeta);
-								FMLLog.info(message);
-								
-								if (messageAdmins)
+								int count = 0;
+								for (int slot = 0; slot < inv.getSizeInventory(); slot++)
 								{
-									IChatComponent adminMessage = new ChatComponentText(message);
-									adminMessage.getChatStyle().setColor(EnumChatFormatting.GRAY);
-									adminMessage.getChatStyle().setItalic(Boolean.valueOf(true));
-							        
-									for (Object admin : server.getConfigurationManager().playerEntityList)
+									ItemStack itemstack = inv.getStackInSlot(slot);
+									if (itemstack != null)
 									{
-										EntityPlayer adminPlayer = (EntityPlayer)admin;
-										if (server.getConfigurationManager().func_152596_g(adminPlayer.getGameProfile()))
+										Item item = itemstack.getItem();
+										String itemID = Item.itemRegistry.getNameForObject(item);
+										int meta = itemstack.getItemDamage();
+										if (itemID.equalsIgnoreCase(checkItemID) && (checkItemMeta == checkMetaAny || checkItemMeta == meta))
 										{
-											adminPlayer.addChatComponentMessage(adminMessage);
+											count += itemstack.stackSize;
 										}
 									}
 								}
+								
+								if (count >= threshold)
+								{
+									String message = String.format("Joetater: WARNING! Player %s has %d of item %s:%d", entityplayer.getCommandSenderName(), count, checkItemID, checkItemMeta);
+									Joetater.logger.info(message);
+									
+									if (messageAdmins)
+									{
+										Joetater.messageAllAdmins(server, message);
+									}
+									
+									sentWarning = true;
+								}
 							}
+						}
+						
+						if (sentWarning)
+						{
+							playersTimeSinceWarned.put(playerID, warnInterval);
 						}
 					}
 				}
