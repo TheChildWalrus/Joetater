@@ -1,5 +1,9 @@
 Joetater Changelog
 
+Version 1.5:
+
++ Added a system to execute /tellraw commands (with colours, links, etc.) as login messages to players
+
 Version 1.4:
 
 + Added an IP logging feature to log players' IP addresses and match them against those of banned players

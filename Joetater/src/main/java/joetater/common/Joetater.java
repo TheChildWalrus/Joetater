@@ -12,7 +12,7 @@ import org.apache.logging.log4j.Logger;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.*;
 
-@Mod(modid = "joetater", name = "Joetater: Region Saver", version = "1.4", acceptableRemoteVersions = "*")
+@Mod(modid = "joetater", name = "Joetater: Region Saver", version = "1.5", acceptableRemoteVersions = "*")
 public class Joetater
 {
 	@Mod.Instance("joetater")
@@ -20,6 +20,7 @@ public class Joetater
 	public static Logger logger;
 	private static IngameChecker ingameChecker;
 	private static JoetaterIPHandler ipHandler;
+	private static LoginHandler loginHandler;
 	
 	@Mod.EventHandler
 	public void preload(FMLPreInitializationEvent event)
@@ -28,6 +29,7 @@ public class Joetater
 		JoetaterConfig.setupAndLoad(event);
 		ingameChecker = new IngameChecker();
 		ipHandler = new JoetaterIPHandler();
+		loginHandler = new LoginHandler();
 	}
 	
 	private static void findLogger()

@@ -28,6 +28,7 @@ public class JoetaterConfig
 		config = new Configuration(event.getSuggestedConfigurationFile());
 		load();
 		IngameChecker.loadConfig(event);
+		LoginHandler.loadConfig(event);
 	}
 	
 	public static void load()
