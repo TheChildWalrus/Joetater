@@ -3,6 +3,7 @@ Joetater Changelog
 Version 1.5:
 
 + Added a system to execute /tellraw commands (with colours, links, etc.) as login messages to players
++ Added a safe restart command, which kicks all non-operator players until the server can catch up with its workload, to avoid rollbacks and data loss
 
 Version 1.4:
 

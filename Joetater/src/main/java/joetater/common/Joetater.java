@@ -64,6 +64,7 @@ public class Joetater
 	{
 		event.registerServerCommand(new CommandJoetate());
 		event.registerServerCommand(new CommandSetBiome());
+		event.registerServerCommand(new CommandSafeRestart());
 		ipHandler.onServerStarting(event);
 	}
 	
