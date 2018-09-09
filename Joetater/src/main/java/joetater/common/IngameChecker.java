@@ -1,6 +1,9 @@
 package joetater.common;
 
 import java.io.*;
+import java.nio.charset.Charset;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -9,11 +12,16 @@ import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.MathHelper;
+import net.minecraft.world.World;
+import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.common.MinecraftForge;
 
 import org.apache.commons.lang3.tuple.Pair;
 
 import com.google.common.base.Charsets;
+import com.google.common.io.Files;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
@@ -22,13 +30,28 @@ import cpw.mods.fml.common.gameevent.TickEvent;
 
 public class IngameChecker
 {
+	private static final Charset CHARSET = Charset.forName("UTF-8");
+	
+	public static boolean messageAdmins;
+	
 	private static Map<Pair<String, Integer>, Integer> checkItemIDs = new HashMap();
 	private static final int checkMetaAny = -1;
+	public static int invCheckInterval;
+	public static int invWarnInterval;
+	private static Map<UUID, Integer> playersInvWarnTimes = new HashMap();
 	
-	public static int checkInterval;
-	public static int warnInterval;
-	public static boolean messageAdmins;
-	private static Map<UUID, Integer> playersTimeSinceWarned = new HashMap();
+	public static int entityThreshold;
+	public static int entityArea;
+	public static int entityCheckInterval;
+	public static int entityWarnInterval;
+	private static Map<UUID, Integer> playersEntityWarnTimes = new HashMap();
+	
+	private static Map<UUID, Integer> playersDupeWarnTimes = new HashMap();
+	public static int dupeCheckInterval;
+	public static int dupeWarnInterval;
+	private static final String dupeLogPath = "joetater/dupes";
+	private static final DateFormat DATE_FORMAT = new SimpleDateFormat("YYYY-MM-dd");
+	private static final DateFormat TIME_FORMAT = new SimpleDateFormat("HH:mm:ss");
 	
 	public IngameChecker()
 	{
@@ -140,19 +163,20 @@ public class IngameChecker
 			for (Object player : server.getConfigurationManager().playerEntityList)
 			{
 				EntityPlayer entityplayer = (EntityPlayer)player;
-				InventoryPlayer inv = entityplayer.inventory;
 				UUID playerID = entityplayer.getUniqueID();
+				World world = entityplayer.worldObj;
+				InventoryPlayer inv = entityplayer.inventory;
 				
-				if (playersTimeSinceWarned.containsKey(playerID) && playersTimeSinceWarned.get(playerID) > 0)
+				if (playersInvWarnTimes.containsKey(playerID) && playersInvWarnTimes.get(playerID) > 0)
 				{
-					int time = playersTimeSinceWarned.get(playerID);
+					int time = playersInvWarnTimes.get(playerID);
 					time--;
-					playersTimeSinceWarned.put(playerID, time);
+					playersInvWarnTimes.put(playerID, time);
 				}
 				
-				if (server.getTickCounter() % checkInterval == 0)
+				if (server.getTickCounter() % invCheckInterval == 0)
 				{
-					if (!playersTimeSinceWarned.containsKey(playerID) || playersTimeSinceWarned.get(playerID) <= 0)
+					if (!playersInvWarnTimes.containsKey(playerID) || playersInvWarnTimes.get(playerID) <= 0)
 					{
 						boolean sentWarning = false;
 						for (Entry<Pair<String, Integer>, Integer> entry : checkItemIDs.entrySet())
@@ -197,7 +221,126 @@ public class IngameChecker
 						
 						if (sentWarning)
 						{
-							playersTimeSinceWarned.put(playerID, warnInterval);
+							playersInvWarnTimes.put(playerID, invWarnInterval);
+						}
+					}
+				}
+				
+				if (playersDupeWarnTimes.containsKey(playerID) && playersDupeWarnTimes.get(playerID) > 0)
+				{
+					int time = playersDupeWarnTimes.get(playerID);
+					time--;
+					playersDupeWarnTimes.put(playerID, time);
+				}
+				
+				if (server.getTickCounter() % dupeCheckInterval == 0)
+				{
+					if (!playersDupeWarnTimes.containsKey(playerID) || playersDupeWarnTimes.get(playerID) <= 0)
+					{
+						boolean duping = false;
+						String dupeItemName = "item???";
+						dupeLoop:
+						for (int slot = 0; slot < inv.getSizeInventory(); slot++)
+						{
+							ItemStack itemstack = inv.getStackInSlot(slot);
+							if (itemstack != null && itemstack.stackSize <= 0)
+							{
+								duping = true;
+								dupeItemName = itemstack.getUnlocalizedName();
+								break dupeLoop;
+							}
+						}
+								
+						if (duping)
+						{
+							String message = String.format("Joetater: WARNING! Player %s is possibly duplicating items (%s)", entityplayer.getCommandSenderName(), dupeItemName);
+							Joetater.logger.info(message);
+							
+							if (messageAdmins)
+							{
+								Joetater.messageAllAdmins(server, message);
+							}
+							
+							playersDupeWarnTimes.put(playerID, dupeWarnInterval);
+							
+							try
+							{
+							    String messageLong = String.format("%s,%s,%s,%s,%s,%s,%s,%s", new Object[]
+							    {
+							    	TIME_FORMAT.format(Calendar.getInstance().getTime()),
+							    	entityplayer.getCommandSenderName(),
+							    	entityplayer.getPersistentID(),
+							    	entityplayer.dimension,
+							    	MathHelper.floor_double(entityplayer.posX),
+							    	MathHelper.floor_double(entityplayer.boundingBox.minY),
+							    	MathHelper.floor_double(entityplayer.posZ),
+							    	dupeItemName
+							    }) + System.getProperty("line.separator");
+								
+								File dupeLogDir = new File(DimensionManager.getCurrentSaveRootDirectory(), dupeLogPath);
+								if (!dupeLogDir.exists())
+								{
+									dupeLogDir.mkdirs();
+								}
+								final File logFileToday = new File(dupeLogDir, DATE_FORMAT.format(Calendar.getInstance().getTime()) + ".csv");
+								if (!logFileToday.exists())
+								{
+					            	Files.append("timestamp,username,UUID,dim,x,y,z,itemname" + System.getProperty("line.separator"), logFileToday, CHARSET);
+								}
+								
+					            Files.append(messageLong, logFileToday, CHARSET);
+							}
+							catch (IOException e)
+							{
+								Joetater.logger.warn("Joetater: Failed saving dupe log");
+								e.printStackTrace();
+							}
+						}
+					}
+				}
+				
+				if (entityThreshold > 0)
+				{
+					if (playersEntityWarnTimes.containsKey(playerID) && playersEntityWarnTimes.get(playerID) > 0)
+					{
+						int time = playersEntityWarnTimes.get(playerID);
+						time--;
+						playersEntityWarnTimes.put(playerID, time);
+					}
+					
+					if (server.getTickCounter() % entityCheckInterval == 0)
+					{
+						if (!playersEntityWarnTimes.containsKey(playerID) || playersEntityWarnTimes.get(playerID) <= 0)
+						{
+							boolean sentWarning = false;
+							
+							AxisAlignedBB checkBox = entityplayer.boundingBox.expand(entityArea, entityArea, entityArea);
+							List nearbyEntities = world.getEntitiesWithinAABBExcludingEntity(entityplayer, checkBox);
+							List nearbyPlayers = world.getEntitiesWithinAABB(EntityPlayer.class, checkBox);
+							int eCount = nearbyEntities.size();
+							int players = nearbyPlayers.size();
+							if (players > 1)
+							{
+								eCount = Math.round((float)eCount / (float)players);
+							}
+							
+							if (eCount >= entityThreshold)
+							{
+								String message = String.format("Joetater: WARNING! Player %s (DIM%d) has %d entities per player in range %d", entityplayer.getCommandSenderName(), entityplayer.dimension, eCount, entityArea);
+								Joetater.logger.info(message);
+								
+								if (messageAdmins)
+								{
+									Joetater.messageAllAdmins(server, message);
+								}
+								
+								sentWarning = true;
+							}
+							
+							if (sentWarning)
+							{
+								playersEntityWarnTimes.put(playerID, entityWarnInterval);
+							}
 						}
 					}
 				}

@@ -12,7 +12,7 @@ import org.apache.logging.log4j.Logger;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.*;
 
-@Mod(modid = "joetater", name = "Joetater: Region Saver", version = "1.5", acceptableRemoteVersions = "*")
+@Mod(modid = "joetater", name = "Joetater: Region Saver", version = "1.7", acceptableRemoteVersions = "*")
 public class Joetater
 {
 	@Mod.Instance("joetater")
@@ -31,7 +31,7 @@ public class Joetater
 		ipHandler = new JoetaterIPHandler();
 		loginHandler = new LoginHandler();
 	}
-	
+
 	private static void findLogger()
 	{
 		try
@@ -60,11 +60,21 @@ public class Joetater
 	}
 	
 	@Mod.EventHandler
+	public void onServerAboutToStart(FMLServerAboutToStartEvent event)
+	{
+		LevelDatRestorer.attemptRestore();
+	}
+	
+	@Mod.EventHandler
 	public void onServerStarting(FMLServerStartingEvent event)
 	{
 		event.registerServerCommand(new CommandJoetate());
 		event.registerServerCommand(new CommandSetBiome());
 		event.registerServerCommand(new CommandSafeRestart());
+		event.registerServerCommand(new CommandSetRenderDistance());
+		event.registerServerCommand(new CommandViewEnder());
+		event.registerServerCommand(new CommandResetPlayer());
+		event.registerServerCommand(new CommandResetRegions());
 		ipHandler.onServerStarting(event);
 	}
 	

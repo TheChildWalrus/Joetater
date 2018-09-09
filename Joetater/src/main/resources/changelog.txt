@@ -1,5 +1,17 @@
 Joetater Changelog
 
+Version 1.7:
+
++ Added a command to view players' ender chest inventories
++ Added a command to reset player data
++ Added a command to bulk-delete region files
++ Added a feature to deal with the curious issue of level.dat sometimes disappearing after restarts on the LOTR Mod Official Server
+
+Version 1.6:
+
++ Added an 'admin slots' option, to allow admins to connect even when the server is full
++ Added an ingame checker for large numbers of nearby entities
+
 Version 1.5:
 
 + Added a system to execute /tellraw commands (with colours, links, etc.) as login messages to players
