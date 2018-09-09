@@ -93,7 +93,7 @@ public class CommandResetRegions extends CommandBase
 					ri.zMin = zMin;
 					ri.zMax = zMax;
 					
-					String msg = EnumChatFormatting.AQUA + String.format("Delete all regions from r.%d.%d.mca to r.%d.%d.mca?", xMin, zMin, xMax, zMax);
+					String msg = EnumChatFormatting.AQUA + String.format("Delete all region files from r.%d.%d.mca to r.%d.%d.mca?", xMin, zMin, xMax, zMax);
 					user.addChatMessage(new ChatComponentText(msg));
 					msg = EnumChatFormatting.DARK_AQUA + "This may not work if regions have been loaded recently!";
 					user.addChatMessage(new ChatComponentText(msg));
@@ -152,7 +152,7 @@ public class CommandResetRegions extends CommandBase
 							}
 						}
 	                    
-						String msg = EnumChatFormatting.AQUA + String.format("Successfully attempted delete of %d regions in %s (%s) and created backups", deleted, (dimFolder == null ? "" : dimFolder) + "/region", world.provider.getDimensionName()) + EnumChatFormatting.RESET;
+						String msg = EnumChatFormatting.AQUA + String.format("Successfully attempted delete of %d region files in %s (%s) and created backups", deleted, (dimFolder == null ? "" : dimFolder) + "/region", world.provider.getDimensionName()) + EnumChatFormatting.RESET;
 						func_152373_a(sender, this, msg);
 						msg = EnumChatFormatting.DARK_AQUA + "This may not work if regions have been loaded recently!";
 						user.addChatMessage(new ChatComponentText(msg));
