@@ -42,7 +42,6 @@ public class LevelDatRestorer
 						Joetater.logger.info("Joetater: WARNING! Failed to restore missing level.dat!");
 						e.printStackTrace();
 					}
-					
 				}
 			}
 		}

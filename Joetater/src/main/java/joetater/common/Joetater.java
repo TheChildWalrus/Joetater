@@ -3,6 +3,7 @@ package joetater.common;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
+import joetater.common.toswr.CommandKillLOTRTraders;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.*;
@@ -12,7 +13,7 @@ import org.apache.logging.log4j.Logger;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.*;
 
-@Mod(modid = "joetater", name = "Joetater: Region Saver", version = "1.7", acceptableRemoteVersions = "*")
+@Mod(modid = "joetater", name = "Joetater: Region Saver", version = "1.9", acceptableRemoteVersions = "*")
 public class Joetater
 {
 	@Mod.Instance("joetater")
@@ -21,6 +22,8 @@ public class Joetater
 	private static IngameChecker ingameChecker;
 	private static JoetaterIPHandler ipHandler;
 	private static LoginHandler loginHandler;
+	private static MountEventHandler mountEventHandler;
+	private static HorseLogger horseLogger;
 	
 	@Mod.EventHandler
 	public void preload(FMLPreInitializationEvent event)
@@ -30,6 +33,8 @@ public class Joetater
 		ingameChecker = new IngameChecker();
 		ipHandler = new JoetaterIPHandler();
 		loginHandler = new LoginHandler();
+		mountEventHandler = new MountEventHandler();
+		horseLogger = new HorseLogger();
 	}
 
 	private static void findLogger()
@@ -75,6 +80,10 @@ public class Joetater
 		event.registerServerCommand(new CommandViewEnder());
 		event.registerServerCommand(new CommandResetPlayer());
 		event.registerServerCommand(new CommandResetRegions());
+		event.registerServerCommand(new CommandListRiders()); 
+		event.registerServerCommand(new CommandKillLOTRTraders());
+		//event.registerServerCommand(new CommandDelFile()); // For mass-deleting a folder of region files
+		//event.registerServerCommand(new CommandCopyJoetated());
 		ipHandler.onServerStarting(event);
 	}
 	

@@ -29,7 +29,6 @@ public class CommandResetRegions extends CommandBase
 		{
 			resetting = false;
 		}
-
 	}
 
 	private Map<UUID, ResetInstance> resetInstances = new HashMap();

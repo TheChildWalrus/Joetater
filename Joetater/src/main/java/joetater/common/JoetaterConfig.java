@@ -22,7 +22,12 @@ public class JoetaterConfig
 	}
 	
 	public static int maxJoetateSize;
+	public static boolean commandKillTraders;
 	public static boolean adminSlots;
+	public static int mountLimit;
+	public static int dismountGracePeriod;
+	public static int mountLogoffGracePeriod;
+	
 	public static void setupAndLoad(FMLPreInitializationEvent event)
 	{
 		config = new Configuration(event.getSuggestedConfigurationFile());
@@ -34,7 +39,11 @@ public class JoetaterConfig
 	public static void load()
 	{
 		maxJoetateSize = config.getInt("Max Joetate Size", CATEGORY_GENERAL, 2000, 0, 20000, "Maximum size of a Joetater region. Note: For 'radius' mode, the maximum range will be half this");
+		commandKillTraders = config.getBoolean("Trader delete command", CATEGORY_GENERAL, false, "Enable joetater-like command for deleting all non-structure-bound LOTR traders/captains within an area");
 		adminSlots = config.getBoolean("Admin Slots", CATEGORY_GENERAL, true, "Allow admins to connect if the server is full");
+		mountLimit = config.getInt("Mount Limit", CATEGORY_GENERAL, -1, -1, Integer.MAX_VALUE, "Set > 0 to limit how many players can ride mounts at once. 0 disables mounts entirely. Values < 0 have no effect");
+		dismountGracePeriod = config.getInt("Mount Limit: Dismount Grace Period", CATEGORY_GENERAL, 10, 0, 60, "If mounts are limited, the grace period (seconds) for a player to dismount and keep their mount slot");
+		mountLogoffGracePeriod = config.getInt("Mount Limit: Disconnect Grace Period", CATEGORY_GENERAL, 20, 0, 60, "If mounts are limited, the grace period (seconds) for a disconnected player to relog and keep their mount slot");
 		
 		IngameChecker.messageAdmins = config.getBoolean("Ingame check message admins", CATEGORY_GENERAL, true, "");
 		
@@ -53,6 +62,8 @@ public class JoetaterConfig
 		JoetaterIPHandler.retainIPTimeDays = config.getInt("Days to retain IPs", CATEGORY_GENERAL, 200, 1, Integer.MAX_VALUE, "Number of days to retain logged IPs for purpose of IP matching. IPs logged longer ago than this amount of days will be deleted. Prevents the file getting too large over time");
 
 		LevelDatRestorer.restoreLevelDat = config.getBoolean("Restore level.dat", CATEGORY_GENERAL, false, "If level.dat is missing, attempt to restore it from level.dat_old");
+		
+		HorseLogger.enableLogger = config.getBoolean("Horse logger", CATEGORY_GENERAL, false, "Track server performance vs. number of players riding mounts");
 		
 		if (config.hasChanged())
 		{

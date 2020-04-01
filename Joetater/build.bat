@@ -1,1 +1,1 @@
-gradlew.bat build
+gradlew.bat build -Dorg.gradle.java.home=C:/PROGRA~1/AdoptOpenJDK/jdk-8.0.242.08-hotspot

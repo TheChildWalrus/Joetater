@@ -1,5 +1,15 @@
 Joetater Changelog
 
+Version 1.9:
+
++ Added an option to limit how many players can ride mounts at once
+
+Version 1.8:
+
++ Added a command to list any players currently riding mounts
+* Improved /jSafeRestart (it now blocks non-admins from joining instead of kicking them immediately after they join)
+* Improved the login tellraw system (it no longer goes through the actual /tellraw command, which caused logging errors with ForgeEssentials for long tellraws)
+
 Version 1.7:
 
 + Added a command to view players' ender chest inventories

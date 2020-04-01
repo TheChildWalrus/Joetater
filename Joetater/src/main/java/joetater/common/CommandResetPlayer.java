@@ -30,7 +30,6 @@ public class CommandResetPlayer extends CommandBase
 			resetName = null;
 			resetID = null;
 		}
-
 	}
 
 	private Map<UUID, ResetInstance> resetInstances = new HashMap();

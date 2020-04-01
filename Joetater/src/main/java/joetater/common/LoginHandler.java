@@ -4,11 +4,16 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
+
+import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.MinecraftForge;
 
 import com.google.common.base.Charsets;
+import com.google.gson.JsonParseException;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
@@ -78,7 +83,17 @@ public class LoginHandler
 		MinecraftServer server = MinecraftServer.getServer();
 		for (String tell : tellraws)
 		{
-			server.getCommandManager().executeCommand(server, "/tellraw " + name + " " + tell);
+            try
+            {
+                IChatComponent msg = IChatComponent.Serializer.func_150699_a(tell);
+                player.addChatMessage(msg);
+            }
+            catch (JsonParseException e)
+            {
+            	Joetater.logger.info("Joetater: Error creating message from login tellraw:");
+            	Joetater.logger.info(tell);
+                e.printStackTrace();
+            }
 		}
 	}
 }
