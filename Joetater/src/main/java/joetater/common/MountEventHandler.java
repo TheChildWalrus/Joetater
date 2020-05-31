@@ -50,7 +50,7 @@ public class MountEventHandler
 					if (!mountRiders.contains(uuid))
 					{
 						int riders = mountRiders.size();
-						if (riders > JoetaterConfig.mountLimit)
+						if (riders >= JoetaterConfig.mountLimit)
 						{
 							player.mountEntity(null);
 							dismounted = true;
