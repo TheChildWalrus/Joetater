@@ -54,6 +54,4 @@ public class CommandListRiders extends CommandBase
 		sender.addChatMessage(new ChatComponentText(String.format("There are %d/%d online players riding mounts:", ridingPlayers.size(), server.getCurrentPlayerCount())));
 		sender.addChatMessage(new ChatComponentText(riderListMsg));
     }
-	
-
 }

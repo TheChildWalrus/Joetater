@@ -49,7 +49,7 @@ public class MountEventHandler
 					
 					if (!mountRiders.contains(uuid))
 					{
-						int riders = countRiders(srv);
+						int riders = mountRiders.size();
 						if (riders > JoetaterConfig.mountLimit)
 						{
 							player.mountEntity(null);
